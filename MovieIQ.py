@@ -1,42 +1,41 @@
-import pandas as pd
 import streamlit as st
 
-from src.theme import inject_css, kpi_card
+from src.theme import inject_css
+from src.loader import load_clean
+from sections import s0_pitch, s1_cutting_room, coming_soon
 
 st.set_page_config(
-    page_title="MovieIQ — The Greenlight Room",
+    page_title="Movie Revenue Analysis",
     page_icon="🎬",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 inject_css()
 
-from src.loader import load_clean
-
 df = load_clean()
 
-st.markdown('<div class="hero-kicker">Build v0.2 &middot; Design system online</div>',
-            unsafe_allow_html=True)
-st.markdown('<div class="hero-title">Movies <span>Revenue Analysis</span></div>',
-            unsafe_allow_html=True)
-st.markdown('<div class="hero-sub">A risk-intelligence console for film investment.</div>',
-            unsafe_allow_html=True)
+SECTIONS = [
+    "00 · Overview",
+    "01 · Data Quality",
+    "02 · Exploratory Analysis",
+    "03 · Statistical Tests",
+    "04 · Prediction Model",
+    "05 · Risk Simulator",
+    "06 · Conclusions",
+]
 
-c1, c2, c3, c4 = st.columns(4)
-with c1:
-    kpi_card("Films in catalogue", f"{len(df):,}", "rows loaded from movies.csv", tone="purple", pct=100)
-with c2:
-    kpi_card("Success base rate", f"{df.success.mean() * 100:.1f}%",
-             "revenue > budget", tone="gold", pct=int(df.success.mean()*100))
-with c3:
-    kpi_card("Median ROI", f"+{df.roi.median() * 100:.1f}%",
-             f"x{df.roi.median() + 1:.2f} multiplier", tone="teal", pct=65)
-with c4:
-    kpi_card("Capital at risk", f"${df.budget.sum() / 1e9:.1f}B",
-             "sum of all budgets", tone="red", pct=85)
-st.markdown("<div style='height:2rem'></div>", unsafe_allow_html=True)
-st.markdown('<div class="hero-title" style="font-size:1.6rem">The Cutting Room</div>',
-            unsafe_allow_html=True)
+with st.sidebar:
+    st.markdown(
+        '<div style="font-family:\'Rajdhani\',sans-serif;font-weight:700;'
+        'font-size:1.1rem;letter-spacing:.05em;color:#fff;margin-bottom:1.2rem">'
+        '◈ MOVIEIQ</div>',
+        unsafe_allow_html=True,
+    )
+    choice = st.radio("Navigation", SECTIONS, label_visibility="collapsed")
 
-from src.audit import render_audit_panel
-render_audit_panel()
+if choice == "00 · Overview":
+    s0_pitch.render(df)
+elif choice == "01 · Data Quality":
+    s1_cutting_room.render()
+else:
+    coming_soon.render(choice.split("· ")[1])
