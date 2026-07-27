@@ -34,3 +34,9 @@ with c3:
 with c4:
     kpi_card("Capital at risk", f"${df.budget.sum() / 1e9:.1f}B",
              "sum of all budgets", tone="red", pct=85)
+st.markdown("<div style='height:2rem'></div>", unsafe_allow_html=True)
+st.markdown('<div class="hero-title" style="font-size:1.6rem">The Cutting Room</div>',
+            unsafe_allow_html=True)
+
+from src.audit import render_audit_panel
+render_audit_panel()

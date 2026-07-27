@@ -41,6 +41,10 @@ h1, h2, h3, h4 { font-family:'Rajdhani', sans-serif; font-weight:700; letter-spa
 .kpi.gold .kpi-bar span { background:linear-gradient(90deg,#7d6a2e,#C9A227); }
 .kpi.teal .kpi-bar span { background:linear-gradient(90deg,#1a7a6e,#2BD9C4); }
 .kpi.red .kpi-bar span { background:linear-gradient(90deg,#8a2f3d,#E0526B); }
+.audit-row { display:flex; align-items:flex-start; gap:.6rem; padding:.55rem 0; border-bottom:1px solid #2A2038; }
+.audit-icon { font-family:'JetBrains Mono',monospace; font-size:.85rem; margin-top:.1rem; }
+.audit-icon.pass { color:#2BD9C4; } .audit-icon.flag { color:#C9A227; } .audit-icon.critical { color:#E0526B; }
+.audit-name { font-size:.85rem; color:#EDE9F5; font-weight:500; } .audit-result {font-family:'JetBrains Mono',monospace; font-size:.78rem; color:#9089AB; margin-left:.4rem; } .audit-note { font-size:.78rem; color:#5C5473; margin-top:.15rem; }
 </style>"""
 
 

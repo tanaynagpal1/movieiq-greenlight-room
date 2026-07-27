@@ -145,3 +145,47 @@ def health_score(checks):
     weights = {"pass": 1.0, "flag": 0.6, "critical": 0.3}
     total = sum(weights[c["verdict"]] for c in checks)
     return round(total / len(checks) * 100)
+
+
+_ICON = {"pass": "✓", "flag": "⚠", "critical": "✗"}
+
+def render_audit_panel():
+    """Renders the full Cutting Room panel: health score + check ledger."""
+    import streamlit as st
+    from .theme import kpi_card
+
+    checks = run_checks()
+    score = health_score(checks)
+    n_pass = sum(1 for c in checks if c["verdict"] == "pass")
+    n_flag = sum(1 for c in checks if c["verdict"] == "flag")
+    n_crit = sum(1 for c in checks if c["verdict"] == "critical")
+
+    tone = "teal" if score >= 80 else "gold" if score >= 60 else "red"
+
+    c1, c2 = st.columns([1, 2])
+    with c1:
+        kpi_card("Data health score", f"{score}/100",
+                 f"{n_pass} pass · {n_flag} flagged · {n_crit} critical",
+                 tone=tone, pct=score)
+    with c2:
+        st.markdown(
+            '<div style="font-size:.85rem;color:#9089AB;line-height:1.6;padding-top:.3rem">'
+            '12 automated checks run on load. Nothing here is hard-coded — '
+            'swap the CSV and this panel recomputes.</div>',
+            unsafe_allow_html=True,
+        )
+
+    st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
+
+    for c in checks:
+        icon = _ICON[c["verdict"]]
+        st.markdown(
+            f'<div class="audit-row">'
+            f'<div class="audit-icon {c["verdict"]}">{icon}</div>'
+            f'<div style="flex:1">'
+            f'<span class="audit-name">{c["id"]}. {c["name"]}</span>'
+            f'<span class="audit-result">{c["result"]}</span>'
+            f'<div class="audit-note">{c["note"]}</div>'
+            f'</div></div>',
+            unsafe_allow_html=True,
+        )
