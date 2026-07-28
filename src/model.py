@@ -2,6 +2,7 @@
 Trained on budget, popularity, runtime, vote_average only.
 revenue is excluded: it defines the target, so including it is leakage."""
 import streamlit as st
+import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold

@@ -1,8 +1,9 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 from src.theme import inject_css
 from src.loader import load_clean
-from sections import s0_pitch, s1_cutting_room, coming_soon
+from sections import s0_pitch, s1_cutting_room, s2_statistical_tests, coming_soon
 
 st.set_page_config(
     page_title="Movie Revenue Analysis",
@@ -35,5 +36,7 @@ if choice == "📊 Dashboard":
     s0_pitch.render(df)
 elif choice == "Data Quality":
     s1_cutting_room.render()
+elif choice == "Statistical Tests":
+    s2_statistical_tests.render(df)
 else:
     coming_soon.render(choice)
