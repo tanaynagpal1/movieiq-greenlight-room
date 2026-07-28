@@ -48,7 +48,14 @@ h1, h2, h3, h4 { font-family:'Rajdhani', sans-serif; font-weight:700; letter-spa
 .panel { background:linear-gradient(160deg,#171123,#100C19); border:1px solid #2A2038; border-radius:8px; padding:1.2rem 1.4rem; height:100%; }
 .panel-title { font-family:'Rajdhani',sans-serif; font-size:1rem; font-weight:700; letter-spacing:.03em; color:#fff; text-transform:uppercase; margin-bottom:.9rem; }
 .section-title { font-family:'Rajdhani',sans-serif; font-size:1.5rem; font-weight:700; color:#fff; margin:2rem 0 .3rem 0; }
-.section-sub { color:#9089AB; font-size:.85rem; margin-bottom:1.2rem; }
+.section-sub { color:#9089AB; font-size:.85rem; margin-bottom:1.2rem; }\
+.badge { display:inline-flex; align-items:center; gap:.4rem; padding:.35rem .8rem border-radius:20px; font-family:'JetBrains Mono',monospace; font-size:.75rem; font-weight:700; letter-spacing:.05em; }
+.badge.red { background:rgba(224,82,107,0.14); color:#E0526B; }
+.badge.gold { background:rgba(201,162,39,0.14); color:#C9A227; }
+.badge.teal { background:rgba(43,217,196,0.14); color:#2BD9C4; }
+.honesty-bar { height:26px; border-radius:5px; background:#2A2038; overflow:hidden;margin-bottom:.5rem; position:relative; }
+.honesty-fill { height:100%; display:flex; align-items:center; padding-left:.7rem; font-family:'JetBrains Mono',monospace; font-size:.75rem; font-weight:700;color:#07060B; }
+.honesty-label { font-size:.72rem; color:#9089AB; margin-bottom:.3rem; }
 </style>"""
 
 

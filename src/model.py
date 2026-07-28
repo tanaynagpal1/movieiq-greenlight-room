@@ -70,5 +70,7 @@ def train_model(df):
 
 def predict_one(model, budget, popularity, runtime, vote_average):
     """Used by the predictor sliders. Returns probability of success."""
-    X = np.array([[budget, popularity, runtime, vote_average]])
+    X = pd.DataFrame(
+        [[budget, popularity, runtime, vote_average]], columns=FEATURES
+    )
     return model.predict_proba(X)[0][1]

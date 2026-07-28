@@ -1,5 +1,5 @@
 import streamlit as st
-
+import pandas as pd
 from src.theme import inject_css
 from src.loader import load_clean
 from sections import s0_pitch, s1_cutting_room, coming_soon
