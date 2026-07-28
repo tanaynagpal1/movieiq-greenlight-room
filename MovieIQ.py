@@ -32,11 +32,37 @@ with st.sidebar:
     )
     choice = st.radio("Navigation", SECTIONS, label_visibility="collapsed")
 
-if choice == "📊 Dashboard":
-    s0_pitch.render(df)
+    st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
+    st.markdown(
+        '<div style="font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;'
+        'color:#5C5473;font-weight:600;margin-bottom:.6rem">Filters</div>',
+        unsafe_allow_html=True,
+    )
+
+    genre_options = sorted(df["genre"].unique())
+    selected_genres = st.multiselect("Genre", genre_options, default=genre_options)
+
+    vote_min, vote_max = float(df["vote_average"].min()), float(df["vote_average"].max())
+    min_vote = st.slider("Min vote average", vote_min, vote_max, vote_min, step=0.1)
+
+    if selected_genres:
+        df_view = df[df["genre"].isin(selected_genres) & (df["vote_average"] >= min_vote)]
+    else:
+        df_view = df.iloc[0:0]  # empty selection -> empty view, no crash
+
+    st.markdown(
+        f'<div style="font-size:.78rem;color:#9089AB;margin-top:.6rem">'
+        f'{len(df_view):,} / {len(df):,} films in view</div>',
+        unsafe_allow_html=True,
+    )
+
+if df_view.empty:
+    st.warning("No films match the current filters. Adjust genre or minimum vote average in the sidebar.")
+elif choice == "📊 Dashboard":
+    s0_pitch.render(df_view)
 elif choice == "Data Quality":
     s1_cutting_room.render()
 elif choice == "Statistical Tests":
-    s2_statistical_tests.render(df)
+    s2_statistical_tests.render(df_view)
 else:
     coming_soon.render(choice)
