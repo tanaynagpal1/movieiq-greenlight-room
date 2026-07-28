@@ -1,6 +1,7 @@
 """Plotly chart factory for MovieIQ. One function per figure, all sharing
 one visual template so every chart in the app looks like it belongs together."""
 import plotly.graph_objects as go
+import numpy as np
 
 TEAL = "#2BD9C4"
 GOLD = "#C9A227"
@@ -81,4 +82,46 @@ def correlation_heatmap(df):
         textfont=dict(color="#EDE9F5", size=11),
         colorbar=dict(tickfont=dict(color=TEXT)),
     ))
+    return _style(fig, height=380)
+
+
+def profit_distribution_chart(profits):
+    """Simulated profit distribution: loss outcomes shaded red,
+    profit outcomes violet, with a gold needle at break-even (profit = 0)."""
+    bins = np.linspace(profits.min(), profits.max(), 60)
+    centers = (bins[:-1] + bins[1:]) / 2
+    counts_loss, _ = np.histogram(profits[profits <= 0], bins=bins)
+    counts_profit, _ = np.histogram(profits[profits > 0], bins=bins)
+
+    fig = go.Figure()
+    fig.add_trace(go.Bar(x=centers, y=counts_loss, name="Loss",
+                          marker=dict(color=RED)))
+    fig.add_trace(go.Bar(x=centers, y=counts_profit, name="Profit",
+                          marker=dict(color=PURPLE)))
+    fig.add_vline(x=0, line_dash="dash", line_color=GOLD,
+                  annotation_text="break-even", annotation_font_color=GOLD,
+                  annotation_position="bottom right")
+    fig.update_layout(barmode="overlay", bargap=0)
+    fig.update_xaxes(title="Simulated profit ($)")
+    fig.update_yaxes(title="Count")
+    return _style(fig, height=340)
+
+
+def slate_roi_chart(roi_dict):
+    """Overlaid density of portfolio ROI at different slate sizes.
+    roi_dict: {slate_size (int): np.ndarray of portfolio ROI outcomes}."""
+    colors = {1: RED, 5: GOLD, 20: TEAL}
+    fig = go.Figure()
+    for size, roi in sorted(roi_dict.items()):
+        fig.add_trace(go.Histogram(
+            x=roi, histnorm="probability density",
+            name=f"{size}-film slate",
+            marker=dict(color=colors.get(size, PURPLE)),
+            opacity=0.55,
+        ))
+    fig.add_vline(x=0, line_dash="dash", line_color="#EDE9F5",
+                  annotation_text="break-even", annotation_position="bottom right")
+    fig.update_layout(barmode="overlay")
+    fig.update_xaxes(title="Portfolio ROI")
+    fig.update_yaxes(title="Density")
     return _style(fig, height=380)
