@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from src.theme import inject_css
 from src.loader import load_clean
-from sections import s0_pitch, s1_cutting_room, s2_statistical_tests, s3_risk_simulator, coming_soon
+from sections import s0_pitch, s1_cutting_room, s2_statistical_tests, s3_risk_simulator, s4_conclusions, coming_soon
 
 st.set_page_config(
     page_title="Movie Revenue Analysis",
@@ -66,5 +66,7 @@ elif choice == "Statistical Tests":
     s2_statistical_tests.render(df_view)
 elif choice == "Risk Simulator":
     s3_risk_simulator.render(df_view)
+elif choice == "Conclusions":
+    s4_conclusions.render(df_view)
 else:
     coming_soon.render(choice)
