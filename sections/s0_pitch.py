@@ -1,10 +1,11 @@
-"""Section 00 — The Pitch."""
+"""Dashboard — KPIs + charts + (soon) the predictor."""
 import streamlit as st
 from src.theme import kpi_card
+from src.charts import breakeven_scatter, genre_success_bar, correlation_heatmap
 
 
 def render(df):
-    st.markdown('<div class="hero-kicker">Build v0.3 · Navigation online</div>',
+    st.markdown('<div class="hero-kicker">Build v0.4 · Dashboard online</div>',
                 unsafe_allow_html=True)
     st.markdown('<div class="hero-title">Movie <span>Revenue Analysis</span></div>',
                 unsafe_allow_html=True)
@@ -24,3 +25,33 @@ def render(df):
     with c4:
         kpi_card("Capital at risk", f"${df.budget.sum() / 1e9:.1f}B",
                  "sum of all budgets", tone="red", pct=85)
+
+    st.markdown('<div class="section-title">Exploratory Analysis</div>',
+                unsafe_allow_html=True)
+    st.markdown('<div class="section-sub">Where the money actually goes.</div>',
+                unsafe_allow_html=True)
+
+    left, right = st.columns([1.5, 1])
+    with left:
+        st.markdown(
+            '<div class="panel"><div class="panel-title">Budget vs Revenue</div>',
+            unsafe_allow_html=True)
+        st.plotly_chart(breakeven_scatter(df), use_container_width=True,
+                         config={"displayModeBar": False})
+        st.markdown('</div>', unsafe_allow_html=True)
+    with right:
+        st.markdown(
+            '<div class="panel"><div class="panel-title">Correlation Matrix</div>',
+            unsafe_allow_html=True)
+        st.plotly_chart(correlation_heatmap(df), use_container_width=True,
+                         config={"displayModeBar": False})
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown("<div style='height:1.2rem'></div>", unsafe_allow_html=True)
+
+    st.markdown(
+        '<div class="panel"><div class="panel-title">Success Rate by Genre</div>',
+        unsafe_allow_html=True)
+    st.plotly_chart(genre_success_bar(df), use_container_width=True,
+                     config={"displayModeBar": False})
+    st.markdown('</div>', unsafe_allow_html=True)

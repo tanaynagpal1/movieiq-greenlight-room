@@ -45,6 +45,10 @@ h1, h2, h3, h4 { font-family:'Rajdhani', sans-serif; font-weight:700; letter-spa
 .audit-icon { font-family:'JetBrains Mono',monospace; font-size:.85rem; margin-top:.1rem; }
 .audit-icon.pass { color:#2BD9C4; } .audit-icon.flag { color:#C9A227; } .audit-icon.critical { color:#E0526B; }
 .audit-name { font-size:.85rem; color:#EDE9F5; font-weight:500; } .audit-result {font-family:'JetBrains Mono',monospace; font-size:.78rem; color:#9089AB; margin-left:.4rem; } .audit-note { font-size:.78rem; color:#5C5473; margin-top:.15rem; }
+.panel { background:linear-gradient(160deg,#171123,#100C19); border:1px solid #2A2038; border-radius:8px; padding:1.2rem 1.4rem; height:100%; }
+.panel-title { font-family:'Rajdhani',sans-serif; font-size:1rem; font-weight:700; letter-spacing:.03em; color:#fff; text-transform:uppercase; margin-bottom:.9rem; }
+.section-title { font-family:'Rajdhani',sans-serif; font-size:1.5rem; font-weight:700; color:#fff; margin:2rem 0 .3rem 0; }
+.section-sub { color:#9089AB; font-size:.85rem; margin-bottom:1.2rem; }
 </style>"""
 
 

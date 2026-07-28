@@ -15,13 +15,11 @@ inject_css()
 df = load_clean()
 
 SECTIONS = [
-    "00 · Overview",
-    "01 · Data Quality",
-    "02 · Exploratory Analysis",
-    "03 · Statistical Tests",
-    "04 · Prediction Model",
-    "05 · Risk Simulator",
-    "06 · Conclusions",
+    "📊 Dashboard",
+    "Data Quality",
+    "Statistical Tests",
+    "Risk Simulator",
+    "Conclusions",
 ]
 
 with st.sidebar:
@@ -33,9 +31,9 @@ with st.sidebar:
     )
     choice = st.radio("Navigation", SECTIONS, label_visibility="collapsed")
 
-if choice == "00 · Overview":
+if choice == "📊 Dashboard":
     s0_pitch.render(df)
-elif choice == "01 · Data Quality":
+elif choice == "Data Quality":
     s1_cutting_room.render()
 else:
-    coming_soon.render(choice.split("· ")[1])
+    coming_soon.render(choice)
