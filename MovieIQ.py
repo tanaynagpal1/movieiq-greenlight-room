@@ -8,7 +8,7 @@ from src.loader import (
 )
 from sections import (
     s0_pitch, s1_cutting_room, s2_statistical_tests,
-    s3_risk_simulator, s4_conclusions, s5_upload, coming_soon,
+    s3_risk_simulator, s4_conclusions, s5_upload, s6_report, coming_soon,
 )
 
 st.set_page_config(
@@ -40,6 +40,7 @@ SECTIONS = [
     "Data Quality",
     "Statistical Tests",
     "Risk Simulator",
+    "Report",
     "Conclusions",
 ]
 
@@ -105,6 +106,8 @@ elif choice == "Statistical Tests":
     s2_statistical_tests.render(df_view)
 elif choice == "Risk Simulator":
     s3_risk_simulator.render(df_view)
+elif choice == "Report":
+    s6_report.render(df_view, raw_df)
 elif choice == "Conclusions":
     s4_conclusions.render(df_view)
 else:
