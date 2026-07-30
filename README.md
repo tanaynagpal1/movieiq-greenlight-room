@@ -26,10 +26,11 @@ So instead of pretending to pick winners, MovieIQ pivots to what the data
 | Section | What it does |
 |---|---|
 | **Dashboard** | KPIs, EDA charts (budget vs revenue, correlation matrix, genre success rates), the Random Forest model with an honest baseline comparison, and a live predictor |
+| **Upload Data** | Shows the active dataset, offers the cleaned data as a CSV download, and lets you run the whole dashboard on your own CSV instead |
 | **Data Quality** | 12 automated data-health checks, computed live from the raw file, with a weighted health score |
 | **Statistical Tests** | T-test (vote average) and chi-square (genre) against success, with an adjustable significance threshold and Bonferroni correction toggle |
 | **Risk Simulator** | Monte Carlo break-even simulator for a single film, plus a slate-diversification builder showing why studios greenlight slates rather than single films |
-| **Conclusions** | Key insights, an honest reflection on the model's limitations, and a button to download the filtered dataset as CSV |
+| **Conclusions** | Key insights and an honest reflection on the model's limitations |
 
 Every sidebar filter (genre, minimum vote average) is shared across the Dashboard
 and Statistical Tests pages — one filtered view, no section can disagree with another.

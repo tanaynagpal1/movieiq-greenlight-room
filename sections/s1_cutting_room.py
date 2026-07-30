@@ -3,7 +3,7 @@ import streamlit as st
 from src.audit import render_audit_panel
 
 
-def render():
+def render(raw_df):
     st.markdown('<div class="hero-title" style="font-size:1.6rem">The Cutting Room</div>',
                 unsafe_allow_html=True)
-    render_audit_panel()
+    render_audit_panel(raw_df)

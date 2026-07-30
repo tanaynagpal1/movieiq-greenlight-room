@@ -1,11 +1,23 @@
-"""Data loading and cleaning for MovieIQ — Section 01: The Cutting Room."""
+"""Data loading and cleaning for MovieIQ.
+Supports two sources:
+  - the bundled data/movies.csv (the default the app opens with)
+  - a CSV uploaded by the user via the Upload Data section
+Both run through the same cleaning logic, so every section behaves
+identically whichever source is active.
+"""
 import ast
+import io
 from pathlib import Path
 
 import pandas as pd
 import streamlit as st
 
 DATA_PATH = Path(__file__).parent.parent / "data" / "movies.csv"
+
+REQUIRED_COLUMNS = [
+    "budget", "revenue", "popularity", "runtime",
+    "vote_average", "title", "genres",
+]
 
 
 def _parse_genre(raw):
@@ -20,32 +32,55 @@ def _parse_genre(raw):
     return "Unspecified"
 
 
-@st.cache_data
-def load_raw():
-    """The untouched file, exactly as it sits on disk. Used only by audit.py
-    to compare before/after — never used for analysis."""
-    return pd.read_csv(DATA_PATH)
+def validate_columns(df):
+    """Returns a list of required columns missing from the given dataframe."""
+    return [c for c in REQUIRED_COLUMNS if c not in df.columns]
 
 
-@st.cache_data
-def load_clean():
-    """The cleaned, analysis-ready dataframe every section should import."""
-    df = pd.read_csv(DATA_PATH)
+def clean_dataframe(raw):
+    """The shared cleaning pipeline. Applied to whichever source is active."""
+    df = raw.copy()
 
     # --- Genre: parse the stringified list, take the first genre, ---
-    # --- relabel the 181 empty "[]" rows as "Unspecified" rather than dropping them. ---
-    # --- Their success rate (81.2%) matches the labelled rows (80.7%) — missing at ---
-    # --- random, so dropping them would only throw away 9% of the file for nothing. ---
+    # --- relabel empty "[]" rows as "Unspecified" rather than dropping them. ---
     df["genre"] = df["genres"].apply(_parse_genre)
 
-    # --- vote_average arrives at ~15 decimal places, a synthetic-data artefact. ---
+    # --- vote_average may arrive at ~15 decimal places, a synthetic-data artefact. ---
     # --- Round for display; keep the original full-precision column for modelling. ---
     df["vote_average_display"] = df["vote_average"].round(1)
 
-    # --- Target and derived metric. revenue itself is never fed to the model — ---
+    # --- Target and derived metrics. revenue itself is never fed to the model — ---
     # --- it's what defines success, so including it would be target leakage. ---
     df["success"] = (df["revenue"] > df["budget"]).astype(int)
     df["roi"] = (df["revenue"] - df["budget"]) / df["budget"]
     df["profit"] = df["revenue"] - df["budget"]
 
     return df
+
+
+# ---------------- Default source: bundled movies.csv ----------------
+
+@st.cache_data
+def load_raw():
+    """The bundled file, untouched. Used by audit.py for before/after comparison."""
+    return pd.read_csv(DATA_PATH)
+
+
+@st.cache_data
+def load_clean():
+    """The bundled file, cleaned and analysis-ready."""
+    return clean_dataframe(pd.read_csv(DATA_PATH))
+
+
+# ---------------- Uploaded source ----------------
+
+@st.cache_data
+def load_raw_from_bytes(file_bytes):
+    """An uploaded CSV, untouched."""
+    return pd.read_csv(io.BytesIO(file_bytes))
+
+
+@st.cache_data
+def load_clean_from_bytes(file_bytes):
+    """An uploaded CSV, cleaned and analysis-ready."""
+    return clean_dataframe(pd.read_csv(io.BytesIO(file_bytes)))

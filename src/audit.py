@@ -1,13 +1,11 @@
 """Data health audit for MovieIQ — Section 01: The Cutting Room.
-Twelve checks, computed live from the actual file. Nothing here is hard-coded —
-swap the CSV and every number below recomputes."""
+Twelve checks, computed live from the uploaded file. Nothing here is
+hard-coded — swap the CSV and every number below recomputes."""
 import ast
 
 import numpy as np
 import pandas as pd
 from scipy.stats import kstest
-
-from .loader import load_raw
 
 
 def _parse_genre_list(raw):
@@ -18,17 +16,18 @@ def _parse_genre_list(raw):
         return []
 
 
-def run_checks():
+def run_checks(df):
     """Returns a list of check dicts: id, name, result, verdict, note.
-    verdict is one of: pass, flag, critical."""
-    df = load_raw()
+    verdict is one of: pass, flag, critical.
+    `df` is the raw uploaded dataframe, before cleaning."""
     checks = []
 
     # 1 — Nulls, all columns
     n_nulls = int(df.isnull().sum().sum())
     checks.append({
         "id": 1, "name": "Null values, all columns",
-        "result": f"{n_nulls} found", "verdict": "pass",
+        "result": f"{n_nulls} found",
+        "verdict": "pass" if n_nulls == 0 else "flag",
         "note": "Absence of NaN is not absence of missingness — check further down.",
     })
 
@@ -37,8 +36,9 @@ def run_checks():
     n_dupe_titles = int(df["title"].duplicated().sum())
     checks.append({
         "id": 2, "name": "Duplicate rows / titles",
-        "result": f"{n_dupe_rows} rows, {n_dupe_titles} titles", "verdict": "pass",
-        "note": "Titles run Movie 1…Movie N, contiguous.",
+        "result": f"{n_dupe_rows} rows, {n_dupe_titles} titles",
+        "verdict": "pass" if (n_dupe_rows + n_dupe_titles) == 0 else "flag",
+        "note": "Duplicate titles inflate any per-film statistic.",
     })
 
     # 3 — Zeros in budget / revenue
@@ -46,15 +46,17 @@ def run_checks():
     n_zero_revenue = int((df["revenue"] == 0).sum())
     checks.append({
         "id": 3, "name": "Zeros in budget / revenue",
-        "result": f"{n_zero_budget} / {n_zero_revenue} found", "verdict": "pass",
-        "note": f"Min budget ${df['budget'].min():,.0f}. Classic TMDB zero-budget problem absent here.",
+        "result": f"{n_zero_budget} / {n_zero_revenue} found",
+        "verdict": "pass" if (n_zero_budget + n_zero_revenue) == 0 else "critical",
+        "note": f"Min budget ${df['budget'].min():,.0f}. Zero budgets break every ROI calculation.",
     })
 
     # 4 — Negative values
     n_neg = int((df["budget"] < 0).sum() + (df["revenue"] < 0).sum())
     checks.append({
         "id": 4, "name": "Negative financial values",
-        "result": f"{n_neg} found", "verdict": "pass",
+        "result": f"{n_neg} found",
+        "verdict": "pass" if n_neg == 0 else "critical",
         "note": "No impossible financials.",
     })
 
@@ -64,16 +66,18 @@ def run_checks():
     pct_empty = n_empty_genre / len(df) * 100
     checks.append({
         "id": 5, "name": "Empty genre lists",
-        "result": f"{n_empty_genre} rows ({pct_empty:.2f}%)", "verdict": "flag",
-        "note": "This is the real missing data. It parses without error, so isnull() never sees it.",
+        "result": f"{n_empty_genre} rows ({pct_empty:.2f}%)",
+        "verdict": "pass" if n_empty_genre == 0 else "flag",
+        "note": "This is hidden missing data. It parses without error, so isnull() never sees it.",
     })
 
     # 6 — Genres per film
     max_genres = int(genre_lists.apply(len).max())
     checks.append({
         "id": 6, "name": "Max genres per film",
-        "result": f"max = {max_genres}", "verdict": "flag" if max_genres <= 1 else "pass",
-        "note": "The brief warns genres 'often holds multiple'. Here every populated row has exactly one.",
+        "result": f"max = {max_genres}",
+        "verdict": "flag" if max_genres <= 1 else "pass",
+        "note": "Films usually carry multiple genres. Exactly one per row is unusual.",
     })
 
     # 7 — vote_average precision
@@ -81,7 +85,8 @@ def run_checks():
     decimals = len(str(sample).split(".")[-1]) if "." in str(sample) else 0
     checks.append({
         "id": 7, "name": "vote_average precision",
-        "result": f"{decimals} d.p.", "verdict": "flag",
+        "result": f"{decimals} d.p.",
+        "verdict": "flag" if decimals > 2 else "pass",
         "note": f"e.g. {sample}. Real vote averages carry one decimal — rounded for display.",
     })
 
@@ -91,7 +96,7 @@ def run_checks():
         "id": 8, "name": "Runtime plausibility",
         "result": f"{n_distinct_runtime} distinct values, {df['runtime'].min()}–{df['runtime'].max()} min",
         "verdict": "flag",
-        "note": "Dead-flat frequency, no shorts or epics — a synthetic fingerprint.",
+        "note": "Check for a dead-flat frequency with no shorts or epics — a synthetic fingerprint.",
     })
 
     # 9 — Outliers via IQR
@@ -103,7 +108,8 @@ def run_checks():
     n_outliers = sum(_iqr_outliers(c) for c in ["budget", "popularity", "runtime", "vote_average"])
     checks.append({
         "id": 9, "name": "Outliers (IQR method)",
-        "result": f"{n_outliers} found", "verdict": "pass",
+        "result": f"{n_outliers} found",
+        "verdict": "pass" if n_outliers == 0 else "flag",
         "note": "Bounded uniform distributions produce no tails.",
     })
 
@@ -119,7 +125,7 @@ def run_checks():
         "id": 10, "name": "KS test vs Uniform (4 features)",
         "result": ", ".join(f"{k}: p={v:.3f}" for k, v in ks_results.items()),
         "verdict": "flag" if all_uniform else "pass",
-        "note": "All four fail to reject uniformity — the smoking gun for synthetic data.",
+        "note": "All four failing to reject uniformity is the smoking gun for synthetic data.",
     })
 
     # 11 — Target leakage check
@@ -134,7 +140,7 @@ def run_checks():
     checks.append({
         "id": 12, "name": "Rows dropped during cleaning",
         "result": "0 rows", "verdict": "pass",
-        "note": "Empty genres relabelled 'Unspecified' rather than removed — 9% of the file, missing-at-random.",
+        "note": "Empty genres relabelled 'Unspecified' rather than removed — missing-at-random.",
     })
 
     return checks
@@ -149,12 +155,14 @@ def health_score(checks):
 
 _ICON = {"pass": "✓", "flag": "⚠", "critical": "✗"}
 
-def render_audit_panel():
-    """Renders the full Cutting Room panel: health score + check ledger."""
+
+def render_audit_panel(raw_df):
+    """Renders the full Cutting Room panel: health score + check ledger.
+    `raw_df` is the untouched uploaded dataframe."""
     import streamlit as st
     from .theme import kpi_card
 
-    checks = run_checks()
+    checks = run_checks(raw_df)
     score = health_score(checks)
     n_pass = sum(1 for c in checks if c["verdict"] == "pass")
     n_flag = sum(1 for c in checks if c["verdict"] == "flag")

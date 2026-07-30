@@ -20,6 +20,33 @@ def _verdict_badge(p_value: float, alpha: float) -> str:
     return f'<span class="badge {tone}">● {text}</span>'
 
 
+def _contingency_html(ct):
+    """Renders the contingency table as themed HTML.
+    Avoids st.dataframe, which requires pyarrow."""
+    rows = "".join(
+        '<tr>'
+        f'<td style="padding:.45rem .9rem;color:#EDE9F5;border-top:1px solid #2A2038">{idx}</td>'
+        f'<td style="padding:.45rem .9rem;font-family:\'JetBrains Mono\',monospace;'
+        f'color:#E0526B;border-top:1px solid #2A2038">{int(row.iloc[0])}</td>'
+        f'<td style="padding:.45rem .9rem;font-family:\'JetBrains Mono\',monospace;'
+        f'color:#2BD9C4;border-top:1px solid #2A2038">{int(row.iloc[1])}</td>'
+        '</tr>'
+        for idx, row in ct.iterrows()
+    )
+    head_style = ("text-align:left;padding:.45rem .9rem;font-size:.68rem;"
+                  "letter-spacing:.14em;text-transform:uppercase;color:#5C5473")
+    return (
+        '<table style="width:100%;border-collapse:collapse;font-size:.85rem">'
+        '<thead><tr>'
+        f'<th style="{head_style}">Genre</th>'
+        f'<th style="{head_style}">Failed</th>'
+        f'<th style="{head_style}">Succeeded</th>'
+        '</tr></thead><tbody>'
+        + rows +
+        '</tbody></table>'
+    )
+
+
 def render(df):
     st.markdown('<div class="hero-title" style="font-size:1.6rem">The Lab</div>',
                 unsafe_allow_html=True)
@@ -100,12 +127,16 @@ def render(df):
     )
 
     with st.expander("View contingency table (genre × success)"):
-        st.dataframe(c["contingency_table"], use_container_width=True)
+        st.markdown(_contingency_html(c["contingency_table"]),
+                    unsafe_allow_html=True)
 
     st.write("")
 
     # ---- PLAIN-LANGUAGE P-VALUE EXPLANATION ----
-    st.markdown('<div class="panel"><div class="panel-title">What a p-value actually means</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="panel"><div class="panel-title">What a p-value actually means</div>',
+        unsafe_allow_html=True,
+    )
     st.markdown(
         "A p-value is the probability of seeing a result at least this "
         "extreme **if the null hypothesis were true** — i.e. if the "
@@ -119,7 +150,7 @@ def render(df):
         "scrutiny — `vote_average` comes nowhere close (p = "
         f"{t['p_value']:.3f}), and `genre` is even further from it "
         f"(p = {c['p_value']:.3f}). That's consistent with the honesty "
-        "meter on the Greenlight Engine page: this dataset's features "
+        "meter on the Prediction Model: this dataset's features "
         "carry effectively no signal about which films succeed."
     )
     st.markdown("</div>", unsafe_allow_html=True)

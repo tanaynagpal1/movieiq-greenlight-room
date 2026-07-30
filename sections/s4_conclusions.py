@@ -1,7 +1,6 @@
 """Section 06 — The Verdict / Conclusions.
 Closes the loop on the brief's Reflection question: how confident would
-you be in MovieIQ's answer, one limitation, one improvement. Also offers
-the filtered data for download.
+you be in MovieIQ's answer, one limitation, one improvement.
 """
 import streamlit as st
 
@@ -61,21 +60,4 @@ def render(df):
         'PREDICTIVE.'
         '</div></div>',
         unsafe_allow_html=True,
-    )
-
-    st.write("")
-
-    st.markdown(
-        '<div class="panel"><div class="panel-title">Download the Data</div>'
-        '<div style="color:#9089AB;font-size:.85rem;margin-bottom:.9rem">'
-        f'Export the {len(df):,} films currently in view (respecting the '
-        'sidebar filters), including the derived success, ROI, and profit columns.'
-        '</div></div>',
-        unsafe_allow_html=True,
-    )
-    st.download_button(
-        label="Download filtered data (CSV)",
-        data=df.to_csv(index=False).encode("utf-8"),
-        file_name="movieiq_filtered_data.csv",
-        mime="text/csv",
     )
