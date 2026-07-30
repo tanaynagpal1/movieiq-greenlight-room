@@ -5,6 +5,7 @@ from src.theme import inject_css
 from src.loader import (
     load_raw, load_clean,
     load_raw_from_bytes, load_clean_from_bytes,
+    BUDGET_BANDS,
 )
 from sections import (
     s0_pitch, s1_cutting_room, s2_statistical_tests,
@@ -61,11 +62,25 @@ with st.sidebar:
     )
 
     # Widget keys include source_key so switching datasets resets the filters
-    # cleanly instead of carrying over stale genre/vote selections.
+    # cleanly instead of carrying over stale selections that no longer exist.
     genre_options = sorted(df["genre"].unique())
     selected_genres = st.multiselect(
         "Genre", genre_options, default=genre_options,
         key=f"genre_filter::{source_key}",
+    )
+
+    # Only offer bands that actually occur, in the defined order rather than
+    # alphabetically — "Blockbuster" should not sort above "Micro/Indie".
+    band_options = [b for b in BUDGET_BANDS if b in set(df["budget_band"])]
+    selected_bands = st.multiselect(
+        "Budget category", band_options, default=band_options,
+        key=f"band_filter::{source_key}",
+    )
+
+    outcome = st.radio(
+        "Box office outcome",
+        ["All films", "Profitable only", "Loss only"],
+        key=f"outcome_filter::{source_key}",
     )
 
     vote_min, vote_max = float(df["vote_average"].min()), float(df["vote_average"].max())
@@ -74,10 +89,27 @@ with st.sidebar:
         key=f"vote_filter::{source_key}",
     )
 
-    if selected_genres:
-        df_view = df[df["genre"].isin(selected_genres) & (df["vote_average"] >= min_vote)]
-    else:
-        df_view = df.iloc[0:0]
+    search = st.text_input(
+        "Search film title", placeholder="Type part of a title",
+        key=f"search_filter::{source_key}",
+    )
+
+    # ---- Build the single filtered view every section works from ----
+    mask = (
+        df["genre"].isin(selected_genres)
+        & df["budget_band"].isin(selected_bands)
+        & (df["vote_average"] >= min_vote)
+    )
+    if outcome == "Profitable only":
+        mask &= df["success"] == 1
+    elif outcome == "Loss only":
+        mask &= df["success"] == 0
+    if search.strip():
+        mask &= df["title"].astype(str).str.contains(
+            search.strip(), case=False, regex=False
+        )
+
+    df_view = df[mask] if (selected_genres and selected_bands) else df.iloc[0:0]
 
     st.markdown(
         f'<div style="font-size:.78rem;color:#9089AB;margin-top:.6rem">'
@@ -97,7 +129,11 @@ with st.sidebar:
 if choice == "Upload Data":
     s5_upload.render(df)
 elif df_view.empty:
-    st.warning("No films match the current filters. Adjust genre or minimum vote average in the sidebar.")
+    st.warning(
+        "No films match the current filters. Widen the genre or budget selection, "
+        "lower the minimum vote average, clear the title search, or set the outcome "
+        "back to all films."
+    )
 elif choice == "📊 Dashboard":
     s0_pitch.render(df_view)
 elif choice == "Data Quality":

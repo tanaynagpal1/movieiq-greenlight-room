@@ -11,7 +11,7 @@ from sklearn.metrics import accuracy_score, roc_auc_score, confusion_matrix
 FEATURES = ["budget", "popularity", "runtime", "vote_average"]
 
 
-@st.cache_resource
+@st.cache_resource(max_entries=5)
 def train_model(df):
     """Trains once, cached across reruns. Returns everything the
     Prediction Model section and the predictor sliders need."""

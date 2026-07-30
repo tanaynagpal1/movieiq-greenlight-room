@@ -9,6 +9,7 @@ import ast
 import io
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import streamlit as st
 
@@ -18,6 +19,15 @@ REQUIRED_COLUMNS = [
     "budget", "revenue", "popularity", "runtime",
     "vote_average", "title", "genres",
 ]
+
+# Fixed dollar thresholds, so the bands mean the same thing on any dataset.
+BUDGET_BANDS = [
+    "Micro/Indie (<$10M)",
+    "Mid-Budget ($10M-$50M)",
+    "High-Budget ($50M-$100M)",
+    "Blockbuster (>$100M)",
+]
+_BUDGET_EDGES = [-np.inf, 10e6, 50e6, 100e6, np.inf]
 
 
 def _parse_genre(raw):
@@ -54,6 +64,13 @@ def clean_dataframe(raw):
     df["success"] = (df["revenue"] > df["budget"]).astype(int)
     df["roi"] = (df["revenue"] - df["budget"]) / df["budget"]
     df["profit"] = df["revenue"] - df["budget"]
+
+    # --- Budget band, for the sidebar filter. Stored as plain strings rather ---
+    # --- than a pandas Categorical, which behaves awkwardly with isin() and ---
+    # --- groupby() once rows are filtered out. ---
+    df["budget_band"] = pd.cut(
+        df["budget"], bins=_BUDGET_EDGES, labels=BUDGET_BANDS
+    ).astype(str)
 
     return df
 
