@@ -2,6 +2,7 @@
 one visual template so every chart in the app looks like it belongs together."""
 import plotly.graph_objects as go
 import numpy as np
+from src.loader import BUDGET_BANDS
 
 TEAL = "#2BD9C4"
 GOLD = "#C9A227"
@@ -99,8 +100,7 @@ def profit_distribution_chart(profits):
     fig.add_trace(go.Bar(x=centers, y=counts_profit, name="Profit",
                           marker=dict(color=PURPLE)))
     fig.add_vline(x=0, line_dash="dash", line_color=GOLD,
-                  annotation_text="break-even", annotation_font_color=GOLD,
-                  annotation_position="bottom right")
+                  annotation_text="break-even", annotation_font_color=GOLD)
     fig.update_layout(barmode="overlay", bargap=0)
     fig.update_xaxes(title="Simulated profit ($)")
     fig.update_yaxes(title="Count")
@@ -120,8 +120,115 @@ def slate_roi_chart(roi_dict):
             opacity=0.55,
         ))
     fig.add_vline(x=0, line_dash="dash", line_color="#EDE9F5",
-                  annotation_text="break-even", annotation_position="bottom right")
+                  annotation_text="break-even")
     fig.update_layout(barmode="overlay")
     fig.update_xaxes(title="Portfolio ROI")
     fig.update_yaxes(title="Density")
     return _style(fig, height=380)
+
+
+GENRE_PALETTE = [
+    TEAL, GOLD, PURPLE, RED, "#5EC8D8", "#E8C468",
+    "#B98CFF", "#F08497", "#4FA88F", "#9089AB",
+]
+
+
+def _genre_colors(genres):
+    return {g: GENRE_PALETTE[i % len(GENRE_PALETTE)] for i, g in enumerate(sorted(genres))}
+
+
+def genre_share_donut(df):
+    """Composition of the catalogue by genre — how many films of each type."""
+    counts = df["genre"].value_counts()
+    colors = _genre_colors(counts.index)
+    fig = go.Figure(go.Pie(
+        labels=counts.index, values=counts.values, hole=0.55,
+        marker=dict(colors=[colors[g] for g in counts.index],
+                    line=dict(color="#07060B", width=2)),
+        textfont=dict(color="#EDE9F5", size=11),
+        textinfo="label+percent",
+    ))
+    fig.update_layout(showlegend=False)
+    return _style(fig, height=380)
+
+
+def outcome_donut(df):
+    """Share of films that were profitable vs a loss."""
+    counts = df["success"].value_counts().reindex([1, 0]).fillna(0)
+    fig = go.Figure(go.Pie(
+        labels=["Profitable", "Loss"], values=counts.values, hole=0.55,
+        marker=dict(colors=[TEAL, RED], line=dict(color="#07060B", width=2)),
+        textfont=dict(color="#EDE9F5", size=12),
+        textinfo="label+percent",
+    ))
+    fig.update_layout(showlegend=False)
+    return _style(fig, height=320)
+
+
+def budget_band_performance(df):
+    """Success rate by budget category, in defined dollar order (not
+    alphabetical) — 'Blockbuster' should not sort above 'Micro/Indie'."""
+    order = [b for b in BUDGET_BANDS if b in set(df["budget_band"])]
+    agg = df.groupby("budget_band")["success"].mean().reindex(order)
+    fig = go.Figure(go.Bar(
+        x=agg.index, y=agg.values * 100,
+        marker=dict(color=[TEAL, GOLD, PURPLE, RED][:len(agg)]),
+        text=[f"{v:.1f}%" for v in agg.values * 100],
+        textposition="outside", textfont=dict(color=TEXT),
+    ))
+    fig.add_hline(y=df["success"].mean() * 100, line_dash="dot",
+                   line_color="#9089AB")
+    fig.update_yaxes(title="Success rate (%)")
+    fig.update_xaxes(title="")
+    return _style(fig, height=340)
+
+
+def distribution_histogram(df, column, title, color=TEAL, prefix="", suffix=""):
+    """Reusable histogram for any numeric column — budget, ROI, runtime, rating."""
+    vals = df[column]
+    fig = go.Figure(go.Histogram(
+        x=vals, marker=dict(color=color, line=dict(color="#07060B", width=0.5)),
+        nbinsx=40,
+    ))
+    fig.add_vline(x=vals.median(), line_dash="dash", line_color=GOLD,
+                   annotation_text=f"median {prefix}{vals.median():,.1f}{suffix}",
+                   annotation_font_color=GOLD, annotation_position="top right")
+    fig.update_xaxes(title=title)
+    fig.update_yaxes(title="Count")
+    return _style(fig, height=320)
+
+
+def genre_box(df, column, title):
+    """Box plot of a numeric column split by genre — median, spread, outliers."""
+    order = df.groupby("genre")[column].median().sort_values().index
+    colors = _genre_colors(order)
+    fig = go.Figure()
+    for g in order:
+        fig.add_trace(go.Box(
+            y=df.loc[df.genre == g, column], name=g,
+            marker=dict(color=colors[g]), line=dict(color=colors[g]),
+            boxpoints=False,
+        ))
+    fig.update_layout(showlegend=False)
+    fig.update_yaxes(title=title)
+    return _style(fig, height=380)
+
+
+def runtime_vs_rating_bubble(df):
+    """Runtime vs rating, colored by genre, bubble size by budget — the
+    combined-signal EDA view: does anything visually cluster by genre?"""
+    colors = _genre_colors(df["genre"].unique())
+    fig = go.Figure()
+    for g in sorted(df["genre"].unique()):
+        sub = df[df.genre == g]
+        fig.add_trace(go.Scatter(
+            x=sub["runtime"], y=sub["vote_average"], mode="markers", name=g,
+            marker=dict(
+                color=colors[g], size=(sub["budget"] / df["budget"].max() * 22 + 4),
+                opacity=0.55, line=dict(width=0),
+            ),
+            hovertext=sub["title"], hoverinfo="text",
+        ))
+    fig.update_xaxes(title="Runtime (min)")
+    fig.update_yaxes(title="Vote average")
+    return _style(fig, height=420)
