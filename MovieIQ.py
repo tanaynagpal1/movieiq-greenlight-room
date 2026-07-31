@@ -9,7 +9,8 @@ from src.loader import (
 )
 from sections import (
     s0_pitch, s1_cutting_room, s2_statistical_tests,
-    s3_risk_simulator, s4_conclusions, s5_upload, s6_report, coming_soon,
+    s3_risk_simulator, s4_conclusions, s5_upload, s6_report, s7_ask_ai,
+    coming_soon,
 )
 
 st.set_page_config(
@@ -43,6 +44,7 @@ SECTIONS = [
     "Risk Simulator",
     "Report",
     "Conclusions",
+    "Ask AI",
 ]
 
 with st.sidebar:
@@ -146,5 +148,7 @@ elif choice == "Report":
     s6_report.render(df_view, raw_df)
 elif choice == "Conclusions":
     s4_conclusions.render(df_view)
+elif choice == "Ask AI":
+    s7_ask_ai.render(df_view, raw_df)
 else:
     coming_soon.render(choice)
